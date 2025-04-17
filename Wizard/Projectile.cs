@@ -65,6 +65,11 @@ public class Projectile : MonoBehaviour
 
         // Trigger the explosion animation
         anim.SetTrigger("explode");
+
+        if (collision.tag == "Enemy")
+        {
+            collision.GetComponent<Health>().TakeDamage(1);
+        }
     }
 
     // Sets the direction of the projectile when fired

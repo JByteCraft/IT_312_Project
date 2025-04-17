@@ -66,8 +66,22 @@ public class Health : MonoBehaviour
                 // Trigger the "dead" animation.
                 anim.SetTrigger("dead");
 
-                // Disable the movement script so the character can't move anymore.
-                GetComponent<Wizard_Movements>().enabled = false;
+                if (GetComponent<Wizard_Movements>() != null)
+                {
+                    // Disable the movement script so the character can't move anymore.
+                    GetComponent<Wizard_Movements>().enabled = false;
+                }
+
+                if (GetComponentInParent<Patrol>() != null)
+                {
+                    GetComponentInParent<Patrol>().enabled = false;
+
+                }
+
+                if (GetComponent<Swordsman>() != null)
+                {
+                    GetComponent<Swordsman>().enabled = false;
+                }
 
                 // Set the dead flag to true to prevent this block from running again.
                 dead = true;
