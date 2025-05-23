@@ -30,6 +30,14 @@ public class Health : MonoBehaviour
     // Reference to the SpriteRenderer used to visually flash the character on damage.
     private SpriteRenderer spriteRend;
 
+    [Header("Components")]
+    [SerializeField] private Behaviour[] components;
+    private bool invulnerable;
+
+    [Header("Audio")]
+    [SerializeField] private AudioClip hurtSound;
+    [SerializeField] private AudioClip deathSound;
+
     // This method is automatically called when the GameObject is initialized (before Start).
     private void Awake()
     {
@@ -46,6 +54,11 @@ public class Health : MonoBehaviour
     // Call this method to apply damage to the character.
     public void TakeDamage(float _damage)
     {
+        if (invulnerable)
+        {
+            return;
+        }
+
         // Subtract damage from current health but clamp the result between 0 and startingHealth.
         currentHealth = Mathf.Clamp(currentHealth - _damage, 0, startingHealth);
 
@@ -57,6 +70,8 @@ public class Health : MonoBehaviour
 
             // Start invulnerability period to prevent taking more damage immediately.
             StartCoroutine(Invulnerability());
+
+            SoundManager.instance.PlaySound(hurtSound);
         }
         else
         {
@@ -66,25 +81,14 @@ public class Health : MonoBehaviour
                 // Trigger the "dead" animation.
                 anim.SetTrigger("dead");
 
-                if (GetComponent<Wizard_Movements>() != null)
+                foreach (Behaviour component in components)
                 {
-                    // Disable the movement script so the character can't move anymore.
-                    GetComponent<Wizard_Movements>().enabled = false;
-                }
-
-                if (GetComponentInParent<Patrol>() != null)
-                {
-                    GetComponentInParent<Patrol>().enabled = false;
-
-                }
-
-                if (GetComponent<Swordsman>() != null)
-                {
-                    GetComponent<Swordsman>().enabled = false;
+                    component.enabled = false;
                 }
 
                 // Set the dead flag to true to prevent this block from running again.
                 dead = true;
+                SoundManager.instance.PlaySound(deathSound);
             }
         }
     }
@@ -99,6 +103,8 @@ public class Health : MonoBehaviour
     // Coroutine that handles temporary invulnerability after taking damage.
     private IEnumerator Invulnerability()
     {
+        invulnerable = true;
+
         // Disable collision between layers 10 and 11 (example: player and enemy attacks).
         Physics2D.IgnoreLayerCollision(10, 11, true);
 
@@ -120,5 +126,11 @@ public class Health : MonoBehaviour
 
         // Re-enable collisions between layers 10 and 11 after invulnerability ends.
         Physics2D.IgnoreLayerCollision(10, 11, false);
+        invulnerable = false;
+    }
+
+    private void Deactivate()
+    {
+        gameObject.SetActive(false);
     }
 }

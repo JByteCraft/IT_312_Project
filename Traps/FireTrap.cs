@@ -8,12 +8,14 @@ public class Firetrap : MonoBehaviour
     [Header("Firetrap Timers")]
     [SerializeField] private float activationDelay;
     [SerializeField] private float activeTime;
+
+    [Header("Audio")]
+    [SerializeField] private AudioClip firetrapSound;
+
     private Animator anim;
     private SpriteRenderer spriteRend;
-
-    private bool triggered; //when the trap gets triggered
-    private bool active; //when the trap is active and can hurt the player
-
+    private bool triggered;
+    private bool active;
     private Health player;
 
     private void Awake()
@@ -22,40 +24,49 @@ public class Firetrap : MonoBehaviour
         spriteRend = GetComponent<SpriteRenderer>();
     }
 
+    private void Update()
+    {
+        if (player != null && active)
+            player.TakeDamage(damage);
+    }
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.tag == "Player")
         {
-            if (!triggered)
-                StartCoroutine(ActivateFiretrap());
-
             player = collision.GetComponent<Health>();
+
+            if (!triggered)
+            {
+                StartCoroutine(ActivateFiretrap());
+            }
+
+            if (active)
+            {
+            collision.GetComponent<Health>();
+            }
         }
     }
+
     private void OnTriggerExit2D(Collider2D collision)
     {
-        player = null;
-    }
-
-    private void Update()
-    {
-        if (active && player != null)
-            player.TakeDamage(damage);
+        if (collision.tag == "Player")
+        {
+            player = null;
+        }
     }
 
     private IEnumerator ActivateFiretrap()
     {
-        //turn the sprite red to notify the player and trigger the trap
         triggered = true;
         spriteRend.color = Color.red;
 
-        //Wait for delay, activate trap, turn on animation, return color back to normal
         yield return new WaitForSeconds(activationDelay);
-        spriteRend.color = Color.white; //turn the sprite back to its initial color
+        SoundManager.instance.PlaySound(firetrapSound);
+        spriteRend.color = Color.white;
         active = true;
         anim.SetBool("activated", true);
 
-        //Wait until X seconds, deactivate trap and reset all variables and animator
         yield return new WaitForSeconds(activeTime);
         active = false;
         triggered = false;

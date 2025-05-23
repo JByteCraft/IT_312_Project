@@ -1,11 +1,15 @@
 using UnityEngine;
 
-public class Swordsman : MonoBehaviour
+public class RangeSwordsman : MonoBehaviour
 {
     [Header("Attack Parameters")]
     [SerializeField] private float attackCooldown;
     [SerializeField] private float range;
     [SerializeField] private int damage;
+
+    [Header("Range Attack Parameters")]
+    [SerializeField] private Transform firePoint;
+    [SerializeField] private GameObject[] slashes;
 
     [Header("Collider Parameters")]
     [SerializeField] private float colliderDistance;
@@ -16,9 +20,9 @@ public class Swordsman : MonoBehaviour
     private float cooldownTimer = Mathf.Infinity;
 
     [Header("Audio")]
-    [SerializeField] private AudioClip attackSound;
+    [SerializeField] private AudioClip slashSound;
 
-    //References
+    // References
     private Animator anim;
     private Health playerHealth;
     private Patrol patrol;
@@ -38,14 +42,36 @@ public class Swordsman : MonoBehaviour
         {
             if (cooldownTimer >= attackCooldown && playerHealth.currentHealth > 0)
             {
-                SoundManager.instance.PlaySound(attackSound);
+                SoundManager.instance.PlaySound(slashSound);
                 cooldownTimer = 0;
-                anim.SetTrigger("meleeAttack");
+                anim.SetTrigger("rangeAttack");
             }
         }
 
         if (patrol != null)
+        {
             patrol.enabled = !PlayerInSight();
+        }
+    }
+
+    private void RangeAttack()
+    {
+        cooldownTimer = 0;
+        slashes[FindSlashes()].transform.position = firePoint.position;
+        slashes[FindSlashes()].GetComponent<Arrow>().ActivateProjectile();
+    }
+
+    private int FindSlashes()
+    {
+        for (int i = 0; i < slashes.Length; i++)
+        {
+            if (!slashes[i].activeInHierarchy)
+            {
+                return i;
+            }
+        }
+
+        return 0;
     }
 
     private bool PlayerInSight()
@@ -63,16 +89,11 @@ public class Swordsman : MonoBehaviour
 
         return false;
     }
+
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(boxCollider.bounds.center + transform.right * range * transform.localScale.x * colliderDistance,
             new Vector3(boxCollider.bounds.size.x * range, boxCollider.bounds.size.y, boxCollider.bounds.size.z));
-    }
-
-    private void DamagePlayer()
-    {
-        if (PlayerInSight())
-            playerHealth.TakeDamage(damage);
     }
 }

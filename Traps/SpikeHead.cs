@@ -7,6 +7,10 @@ public class SpikeHead : Spikes
     [SerializeField] private float range;
     [SerializeField] private float checkDelay;
     [SerializeField] private LayerMask playerLayer;
+
+    [Header("Audio")]
+    [SerializeField] private AudioClip spikeHeadSound;
+
     private float checkTimer;
     private Vector3 destination;
     private bool attacking;
@@ -67,6 +71,7 @@ public class SpikeHead : Spikes
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
+        SoundManager.instance.PlaySound(spikeHeadSound);
         base.OnTriggerEnter2D(collision);
         Stop();
     }
